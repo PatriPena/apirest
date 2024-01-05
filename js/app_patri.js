@@ -14,13 +14,43 @@ search_form.addEventListener("submit", (event) => {
 
 /* Search for an IpAddress */
 async function search_Ip_Address(ip_address) {
-    const api_key = "xxxxxxxxxxxxxxxxxxxxxxx";
+    const api_key = "at_siL6B4DQlmM5czOLCa0IVEZaFCUqe";
     const request = await fetch(`https://geo.ipify.org/api/v2/country,city?apiKey=${api_key}&ipAddress=${ip_address}`);
     const response = await request.json();
 
-    /* Update the UI on the page */
     const { location, ip, isp } = response;
+
+    /* Update the ui on the page */
     update_ui(ip, location.city, location.timezone, isp)
+
+    /* Update the map on the page */
+     /* first remove all map instances if any */
+     if (map !== undefined && map !== null) {
+        map.remove()
+     }
+    create_map(location.lat, location.lng, location.country, location.region)
+}
+
+/* create the map */
+let map;
+function create_map(lat, lng, country, region) {
+    map = L.map("map").setView([lat, lng], 14);
+    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 20,
+        attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+    }).addTo(map);
+
+    /* Add marker to the map */
+    const my_icon = L.icon({
+        iconUrl: "/images/icon-location.svg",
+        iconSize: [40, 60],
+        iconAnchor: [22, 94],
+        popupAnchor: [-3, -76],
+       
+    })
+    L.marker([lat, lng], {icon: my_icon}).addTo(map)
+    .bindPopup(`${region}, ${country}`)
+    .openPopup();
 }
 
 /* update UI function */
@@ -38,36 +68,11 @@ function update_ui(ip_address, location, timezone, isp) {
     utc.textContent = 'UTC' + timezone;
     isprovider.textContent = isp;
 }
-/* create the map */
-let map;
-function create_map(lat, lng) {
-    map = L.map('map').setView([lat, lng, country, region], 14);
-    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 20,
-        attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-    }).addTo(map);
-    
-    L.marker([lat, lng]).addTo(map)
-    	.bindPopup(`${region}, ${country}`)
-    	.openPopup();
-   }
-/* Search for an IpAddress */
-async function search_Ip_Address(ip_address) {
-    const api_key = "at_HhKzCe09UZIYJC9pY7YTg7kMMUzZd";
-    const request = await fetch(`https://geo.ipify.org/api/v2/country,city?apiKey=${api_key}&ipAddress=${ip_address}`);
-    const response = await request.json();
 
-    const { location, ip, isp } = response;
-
-    /* Update the ui on the page */
-    update_ui(ip, location.city, location.timezone, isp)
-
-    /* Update the map on the page */
-     /* first remove all map instances if any */
-     if (map !== undefined && map !== null) {
-        map.remove()
-     }
-    create_map(location.lat, location.lng, location.country, location.region)
-}
-    const defaultIp = "197.210.78.172";
+/* Create map with default values when page loads */
+const defaultIp = "197.210.78.172";
 search_Ip_Address(defaultIp)
+
+
+/* navigator.geolocation.getCurrentPosition
+https://europe-west3-devrcc.cloudfunctions.net/whatismyip*/
